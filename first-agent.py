@@ -1,3 +1,13 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+api_key = os.getenv("OPENAI_API_KEY")
+if api_key is None:
+    raise ValueError("OPENAI_API_KEY environment variable is not set")
+os.environ["OPENAI_API_KEY"] = api_key
+
 from agents import Agent, InputGuardrail,GuardrailFunctionOutput, Runner
 from pydantic import BaseModel
 import asyncio
