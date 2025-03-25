@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import asyncio
-from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager, ConversableAgent
+from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
 
 load_dotenv()
 
@@ -26,23 +26,29 @@ llm_config = {
 # Create specialized tutor agents
 math_tutor = AssistantAgent(
     name="Math_Tutor",
-    system_message="You provide help with math problems. You only respond to math questions. For non-math questions, politely decline and wait for the appropriate agent to respond.",
+    system_message="""You provide help with math problems. You only respond to math questions. 
+    For non-math questions, politely decline and wait for the appropriate agent to respond.
+    After answering correctly, end with 'TERMINATE'.""",
     llm_config=llm_config,
 )
 
 history_tutor = AssistantAgent(
     name="History_Tutor",
-    system_message="You provide assistance with historical queries. You only respond to history questions. For non-history questions, politely decline and wait for the appropriate agent to respond.",
+    system_message="""You provide assistance with historical queries. You only respond to history questions. 
+    For non-history questions, politely decline and wait for the appropriate agent to respond.
+    After answering correctly, end with 'TERMINATE'.""",
     llm_config=llm_config,
 )
 
 general_knowledge = AssistantAgent(
     name="General_Knowledge",
-    system_message="You provide assistance with general knowledge questions that aren't specifically about math or history. You handle philosophical, scientific, and everyday questions.",
+    system_message="""You provide assistance with general knowledge questions that aren't specifically about math or history. 
+    You handle philosophical, scientific, and everyday questions.
+    After answering correctly, end with 'TERMINATE'.""",
     llm_config=llm_config,
 )
 
-# Create coding expert agent with code execution capabilities
+# Create coding expert agent with improved code execution capabilities
 coding_expert = AssistantAgent(
     name="Coding_Expert",
     system_message="""You are an expert programmer who helps with coding questions and tasks.
@@ -50,6 +56,15 @@ coding_expert = AssistantAgent(
     - You provide detailed explanations of your code
     - You debug issues in existing code
     - You only respond to programming-related questions
+    
+    IMPORTANT WORKFLOW FOR CODING TASKS:
+    1. ALWAYS FIRST check if necessary packages are installed before running any code that requires external libraries
+    2. If packages are missing, install them with pip install commands
+    3. After successful installation, immediately RERUN your full solution code in a NEW message
+    4. When your code works successfully, explain the results and end with 'TERMINATE'
+    5. If code execution fails, fix the issue and try again
+    
+    For matplotlib visualization on macOS, always include plt.show() at the end.
     For non-programming questions, politely decline and wait for the appropriate agent to respond.""",
     llm_config=llm_config,
 )
@@ -62,8 +77,8 @@ user_proxy = UserProxyAgent(
     code_execution_config={
         "work_dir": "coding_workspace",
         "use_docker": False,
-        "last_n_messages": 3,
-        "timeout": 60,
+        "last_n_messages": 2,  # Only consider last 2 messages for context when executing code
+        "timeout": 120,  # Increase timeout for visualization tasks
     },
 )
 
@@ -76,8 +91,12 @@ manager = AssistantAgent(
     - For general knowledge questions, select the General_Knowledge agent
     - For programming or coding questions, select the Coding_Expert
     
-    When a coding question is asked, tell the Coding_Expert to help and mention that the User_Proxy can execute the code.
-    After an agent has answered a question properly, conclude the conversation with TERMINATE.""",
+    IMPORTANT MANAGER GUIDELINES:
+    1. ONLY intervene if the selected expert is clearly wrong or the conversation gets stuck
+    2. Let the experts handle their domain questions completely
+    3. For coding questions with execution errors, let the Coding_Expert fix them without interruption
+    4. Only add 'TERMINATE' after the question has been fully answered successfully
+    5. For programming requests, choose the Coding_Expert and ask User_Proxy to execute the code""",
     llm_config=llm_config,
 )
 
@@ -85,10 +104,10 @@ manager = AssistantAgent(
 group_chat = GroupChat(
     agents=[user_proxy, manager, math_tutor, history_tutor, general_knowledge, coding_expert],
     messages=[],
-    max_round=4,  # Reduce from 6 to 4 as we have better control now
+    max_round=12,  # Increase max rounds to allow for dependency installation and code retries
     speaker_selection_method="auto",  # Let the manager decide who speaks next
-    allow_repeat_speaker=False,  # Prevent the same agent from speaking twice in a row
-    send_introductions=True,  # Send system messages to introduce each agent
+    allow_repeat_speaker=True,  # Allow agents to speak multiple times when fixing issues
+    send_introductions=False,  # Skip introductions to save tokens
 )
 
 group_chat_manager = GroupChatManager(
@@ -97,40 +116,39 @@ group_chat_manager = GroupChatManager(
 )
 
 async def process_query(query):
-    print(f"\nUser Query: {query}\n")
+    """Process a user query through the group chat with proper error handling"""
+    print(f"\n{'='*60}\nProcessing Query: {query}\n{'='*60}\n")
     
     # Create a directory for code execution if it doesn't exist
     os.makedirs("coding_workspace", exist_ok=True)
     
-    # Initiate the chat with the user's query
-    await user_proxy.a_initiate_chat(
-        recipient=group_chat_manager,
-        message=query,
-    )
-    
-    # Return the last message from the conversation
-    return "Query processed through group chat"
+    try:
+        # Initiate the chat with the user's query
+        await user_proxy.a_initiate_chat(
+            recipient=group_chat_manager,
+            message=query,
+        )
+        return "Query processed successfully"
+    except Exception as e:
+        print(f"Error processing query: {e}")
+        return f"Error: {str(e)}"
 
 async def main():
-    # Test with a history question
-    print("\nProcessing history question...")
-    await process_query("Who was the first president of the United States?")
+    """Main function to run the demo with different types of queries"""
+    queries = [
+        # Basic knowledge questions
+        #"Who was the first president of the United States?",
+        #"What is the formula for the area of a circle?",
+        #"What is the meaning of life according to philosophers?",
+        
+        # Coding questions
+        #"Write a Python function that finds the prime numbers up to n using the Sieve of Eratosthenes algorithm and test it with n=50",
+        "Create a Python script to generate and visualize random data: create an array of 100 random numbers, calculate statistics, and plot a histogram"
+    ]
+    for query in queries:
+        await process_query(query)
     
-    # Test with a math question
-    print("\nProcessing math question...")
-    await process_query("What is the formula for the area of a circle?")
-    
-    # Test with a general question
-    print("\nProcessing general question...")
-    await process_query("What is life?")
-    
-    # Test with a coding question
-    print("\nProcessing coding question...")
-    await process_query("Write a Python function that finds the prime numbers up to n using the Sieve of Eratosthenes algorithm and test it with n=50")
-    
-    # Test with a data analysis question
-    print("\nProcessing data analysis question...")
-    await process_query("Create a Python script to generate and visualize random data: create an array of 100 random numbers, calculate statistics, and plot a histogram")
+    # await process_query("Create a Python script to generate and visualize random data: create an array of 100 random numbers, calculate statistics, and plot a histogram")
 
 if __name__ == "__main__":
     asyncio.run(main())
