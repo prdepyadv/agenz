@@ -24,33 +24,24 @@ llm_config = {
 }
 
 # Create specialized tutor agents
-math_tutor = ConversableAgent(
+math_tutor = AssistantAgent(
     name="Math_Tutor",
-    system_message="You provide help with math problems. You only respond to math questions. For non-math questions, suggest that the history tutor or another agent should respond. Explain your reasoning at each step and include examples.",
+    system_message="You provide help with math problems. You only respond to math questions. For non-math questions, politely decline and wait for the appropriate agent to respond.",
     llm_config=llm_config,
 )
 
-history_tutor = ConversableAgent(
+history_tutor = AssistantAgent(
     name="History_Tutor",
-    system_message="You provide assistance with historical queries. You only respond to history questions. For non-history questions, suggest that the math tutor or another agent should respond. Explain important events and context clearly.",
+    system_message="You provide assistance with historical queries. You only respond to history questions. For non-history questions, politely decline and wait for the appropriate agent to respond.",
     llm_config=llm_config,
 )
 
-# Create a manager agent that will decide which tutor to use
-group_chat = GroupChat(
-    agents=[math_tutor, history_tutor],
-    messages=[],
-    max_round=6,
-    send_introductions=True,  # Send system messages to introduce each agent
-)
-
-group_chat_manager = GroupChatManager(
-    name="Group_Chat_Manager",
-    groupchat=group_chat,
+general_knowledge = AssistantAgent(
+    name="General_Knowledge",
+    system_message="You provide assistance with general knowledge questions that aren't specifically about math or history. You handle philosophical, scientific, and everyday questions.",
     llm_config=llm_config,
 )
 
-# Create user proxy agent that will provide input
 user_proxy = UserProxyAgent(
     name="User_Proxy",
     human_input_mode="NEVER",
@@ -58,11 +49,39 @@ user_proxy = UserProxyAgent(
     code_execution_config=False,
 )
 
+manager = AssistantAgent(
+    name="Manager",
+    system_message="""You are a manager who routes questions to the appropriate expert. 
+    - For math questions, select the Math_Tutor
+    - For history questions, select the History_Tutor
+    - For general knowledge questions, select the General_Knowledge agent
+    
+    After an agent has answered a question properly, conclude the conversation with TERMINATE.""",
+    llm_config=llm_config,
+)
+
+# Create the group chat with appropriate configuration
+group_chat = GroupChat(
+    agents=[user_proxy, manager, math_tutor, history_tutor, general_knowledge],
+    messages=[],
+    max_round=4,  # Reduce from 6 to 4 as we have better control now
+    speaker_selection_method="auto",  # Let the manager decide who speaks next
+    allow_repeat_speaker=False,  # Prevent the same agent from speaking twice in a row
+    send_introductions=True,  # Send system messages to introduce each agent
+)
+
+group_chat_manager = GroupChatManager(
+    groupchat=group_chat,
+    llm_config=llm_config,
+)
+
 async def process_query(query):
+    print(f"\nUser Query: {query}\n")
+    
     # Initiate the chat with the user's query
     await user_proxy.a_initiate_chat(
         recipient=group_chat_manager,
-        message=query + "\n\nAfter getting an answer, please conclude with TERMINATE.",
+        message=query,
     )
     
     # Return the last message from the conversation
