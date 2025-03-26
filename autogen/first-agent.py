@@ -108,6 +108,7 @@ async def initialize_agents():
             "last_n_messages": 2,
             "timeout": 120,
         },
+        system_message="You are a proxy for the user's questions. Do not generate empty messages."
     )
     
     # Create a manager agent that will decide which agent to use
