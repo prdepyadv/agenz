@@ -58,13 +58,13 @@ coding_expert = AssistantAgent(
     - You only respond to programming-related questions
     
     IMPORTANT WORKFLOW FOR CODING TASKS:
-    1. ALWAYS FIRST check if necessary packages are installed before running any code that requires external libraries
-    2. If packages are missing, install them with pip install commands
-    3. After successful installation, immediately RERUN your full solution code in a NEW message
-    4. When your code works successfully, explain the results and end with 'TERMINATE'
-    5. If code execution fails, fix the issue and try again
+    1. ALWAYS check if necessary packages are installed before running any code that requires external libraries
+    2. If packages are missing, suggest installation with pip install commands (WITHOUT '!' prefix, use shell blocks)
+    3. After successful installation, provide the COMPLETE solution in a SINGLE code block
+    4. For matplotlib visualizations on macOS, use plt.savefig() INSTEAD of plt.show() to avoid blocking
+    5. When your code works successfully, explain the results and end with 'TERMINATE'
+    6. If code execution fails, fix the issue and try again
     
-    For matplotlib visualization on macOS, always include plt.show() at the end.
     For non-programming questions, politely decline and wait for the appropriate agent to respond.""",
     llm_config=llm_config,
 )
@@ -77,8 +77,8 @@ user_proxy = UserProxyAgent(
     code_execution_config={
         "work_dir": "coding_workspace",
         "use_docker": False,
-        "last_n_messages": 2,  # Only consider last 2 messages for context when executing code
-        "timeout": 120,  # Increase timeout for visualization tasks
+        "last_n_messages": 2,
+        "timeout": 120,
     },
 )
 
@@ -96,7 +96,7 @@ manager = AssistantAgent(
     2. Let the experts handle their domain questions completely
     3. For coding questions with execution errors, let the Coding_Expert fix them without interruption
     4. Only add 'TERMINATE' after the question has been fully answered successfully
-    5. For programming requests, choose the Coding_Expert and ask User_Proxy to execute the code""",
+    5. For programming requests, choose the Coding_Expert and mention User_Proxy can execute code""",
     llm_config=llm_config,
 )
 
@@ -104,10 +104,10 @@ manager = AssistantAgent(
 group_chat = GroupChat(
     agents=[user_proxy, manager, math_tutor, history_tutor, general_knowledge, coding_expert],
     messages=[],
-    max_round=12,  # Increase max rounds to allow for dependency installation and code retries
-    speaker_selection_method="auto",  # Let the manager decide who speaks next
-    allow_repeat_speaker=True,  # Allow agents to speak multiple times when fixing issues
-    send_introductions=False,  # Skip introductions to save tokens
+    max_round=12,
+    speaker_selection_method="auto",
+    allow_repeat_speaker=True,
+    send_introductions=False,
 )
 
 group_chat_manager = GroupChatManager(
@@ -137,18 +137,17 @@ async def main():
     """Main function to run the demo with different types of queries"""
     queries = [
         # Basic knowledge questions
-        #"Who was the first president of the United States?",
-        #"What is the formula for the area of a circle?",
-        #"What is the meaning of life according to philosophers?",
+        # "Who was the first president of the United States?",
+        # "What is the formula for the area of a circle?",
+        # "What is the meaning of life according to philosophers?",
         
         # Coding questions
-        #"Write a Python function that finds the prime numbers up to n using the Sieve of Eratosthenes algorithm and test it with n=50",
+        # "Write a Python function that finds the prime numbers up to n using the Sieve of Eratosthenes algorithm and test it with n=50",
         "Create a Python script to generate and visualize random data: create an array of 100 random numbers, calculate statistics, and plot a histogram"
     ]
+    
     for query in queries:
         await process_query(query)
-    
-    # await process_query("Create a Python script to generate and visualize random data: create an array of 100 random numbers, calculate statistics, and plot a histogram")
 
 if __name__ == "__main__":
     asyncio.run(main())
