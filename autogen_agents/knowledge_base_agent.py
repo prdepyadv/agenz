@@ -24,10 +24,10 @@ def knowledge_base_agent(llm_config):
 
         user_query = messages[-1]['content'] if messages else ""
 
-        print(f"User Query: {user_query}")
+        print(f"User Query: {user_query}", flush=True)
         kb_answer = kb.query(user_query)
-        print(f"Knowledge Base Answer: {kb_answer}")
-        
+        print(f"Knowledge Base Answer: {kb_answer}", flush=True)
+            
         if kb_answer:
             response = f"According to the knowledge base:\n\n{kb_answer}\n\nTERMINATE"
         else:

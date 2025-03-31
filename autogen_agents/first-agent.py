@@ -123,7 +123,7 @@ async def initialize_agents():
         - For history questions, select the History_Tutor
         - For general knowledge questions, select the General_Knowledge agent
         - For programming or coding questions, select the Coding_Expert
-        - For queries regarding autogen or multi agent systems, use the Knowledge_Base_Agent
+        - For queries regarding autogen or multi agent systems or if someone says check with Custom Knowledge Base, use the Knowledge_Base_Agent
         
         IMPORTANT MANAGER GUIDELINES:
         1. ONLY intervene if the selected expert is clearly wrong or the conversation gets stuck
@@ -133,7 +133,7 @@ async def initialize_agents():
         5. NEVER simulate being the user or pretend to correct typos on behalf of the user
         6. For programming requests, choose the Coding_Expert and mention User_Proxy can execute code
         7. Respect the TERMINATE message and do not continue the conversation after it""",
-        llm_config=llm_config,
+        llm_config=llm_config
     )
     
     # Create the group chat with appropriate configuration
