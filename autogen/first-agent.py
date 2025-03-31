@@ -100,7 +100,7 @@ async def initialize_agents():
     # Create user proxy agent that will provide input and can execute code
     user_proxy = UserProxyAgent(
         name="User_Proxy",
-        human_input_mode="NEVER",
+        human_input_mode="ALWAYS",  # allow real user input
         is_termination_msg=lambda msg: "TERMINATE" in msg.get("content", ""),
         code_execution_config={
             "work_dir": "coding_workspace",
@@ -124,8 +124,10 @@ async def initialize_agents():
         1. ONLY intervene if the selected expert is clearly wrong or the conversation gets stuck
         2. Let the experts handle their domain questions completely
         3. For coding questions with execution errors, let the Coding_Expert fix them without interruption
-        4. Only add 'TERMINATE' after the question has been fully answered successfully
-        5. For programming requests, choose the Coding_Expert and mention User_Proxy can execute code""",
+        4. NEVER generate new questions on your own - only respond to the user's original query
+        5. NEVER simulate being the user or pretend to correct typos on behalf of the user
+        6. For programming requests, choose the Coding_Expert and mention User_Proxy can execute code
+        7. Respect the TERMINATE message and do not continue the conversation after it""",
         llm_config=llm_config,
     )
     
