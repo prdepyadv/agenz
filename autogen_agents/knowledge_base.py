@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
-from langchain_openai import OpenAIEmbeddings
+#from langchain_openai import OpenAIEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import DirectoryLoader, UnstructuredFileLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -11,7 +12,8 @@ class KnowledgeBase:
     def __init__(self, docs_path="knowledge_docs", persist_directory="kb_chroma_db", rebuild=False):
         self.docs_path = docs_path
         self.persist_directory = persist_directory
-        self.embedding = OpenAIEmbeddings(model="text-embedding-ada-002")
+        #self.embedding = OpenAIEmbeddings(model="text-embedding-ada-002")
+        self.embedding = OllamaEmbeddings(model="nomic-embed-text")
 
         if not os.path.exists(self.persist_directory) or rebuild:
             self.build_index()
