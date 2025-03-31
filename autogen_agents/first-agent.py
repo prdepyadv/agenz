@@ -5,21 +5,21 @@ from dotenv import load_dotenv
 import asyncio
 from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
 
-from autogen_agents.knowledge_base_agent import knowledge_base_agent
+from knowledge_base_agent import knowledge_base_agent
 
 """
 Example Usage:
 # Run with a direct query
-python autogen/first-agent.py --query "What is the formula for the area of a triangle?"
+python autogen_agents/first-agent.py --query "What is the formula for the area of a triangle?"
 
 # Run in interactive mode
-python autogen/first-agent.py --interactive
+python autogen_agents/first-agent.py --interactive
 
 # Use a preset query
-python autogen/first-agent.py --preset coding
+python autogen_agents/first-agent.py --preset coding
 
 # Default (runs interactive mode if no args provided)
-python autogen/first-agent.py
+python autogen_agents/first-agent.py
 """
 
 def setup_argparse():
@@ -123,6 +123,7 @@ async def initialize_agents():
         - For history questions, select the History_Tutor
         - For general knowledge questions, select the General_Knowledge agent
         - For programming or coding questions, select the Coding_Expert
+        - For queries regarding autogen or multi agent systems, use the Knowledge_Base_Agent
         
         IMPORTANT MANAGER GUIDELINES:
         1. ONLY intervene if the selected expert is clearly wrong or the conversation gets stuck
@@ -137,7 +138,7 @@ async def initialize_agents():
     
     # Create the group chat with appropriate configuration
     group_chat = GroupChat(
-        agents=[user_proxy, manager, math_tutor, history_tutor, general_knowledge, coding_expert],
+        agents=[user_proxy, manager, math_tutor, history_tutor, general_knowledge, coding_expert, kb_agent],
         messages=[],
         max_round=12,
         speaker_selection_method="auto",

@@ -1,0 +1,4 @@
+AutoGen is a framework developed by Microsoft for creating multi-agent systems. 
+It allows users to define, orchestrate, and manage complex agent interactions. 
+AutoGen simplifies building applications that leverage multiple AI agents, each specialized 
+in distinct tasks, and facilitates efficient collaboration between these agents.
