@@ -22,6 +22,10 @@ python autogen_agents/first-agent.py --preset coding
 python autogen_agents/first-agent.py
 """
 
+"""
+todo: learn autogen's user_memory from https://microsoft.github.io/autogen/stable//user-guide/agentchat-user-guide/memory.html
+"""
+
 def setup_argparse():
     """Set up command line argument parsing"""
     parser = argparse.ArgumentParser(description="AI Agent System for answering various questions")
@@ -123,7 +127,7 @@ async def initialize_agents():
         - For history questions, select the History_Tutor
         - For general knowledge questions, select the General_Knowledge agent
         - For programming or coding questions, select the Coding_Expert
-        - For queries regarding autogen or multi agent systems or if someone says check with Custom Knowledge Base, use the Knowledge_Base_Agent
+        - ONLY route queries explicitly mentioning "internal knowledge base", "custom knowledge base", or "knowledge base" to the Knowledge_Base_Agent.
         
         IMPORTANT MANAGER GUIDELINES:
         1. ONLY intervene if the selected expert is clearly wrong or the conversation gets stuck
