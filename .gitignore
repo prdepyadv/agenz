@@ -174,3 +174,5 @@ cython_debug/
 .pypirc
 
 coding_workspace
+
+kb_chroma_db

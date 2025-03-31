@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 import asyncio
 from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
 
+from autogen_agents.knowledge_base_agent import knowledge_base_agent
+
 """
 Example Usage:
 # Run with a direct query
@@ -97,6 +99,8 @@ async def initialize_agents():
         llm_config=llm_config,
     )
     
+    kb_agent = knowledge_base_agent(llm_config)
+
     # Create user proxy agent that will provide input and can execute code
     user_proxy = UserProxyAgent(
         name="User_Proxy",
