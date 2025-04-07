@@ -128,9 +128,9 @@ async def initialize_agents():
         - For history questions, select the History_Tutor
         - For general knowledge questions, select the General_Knowledge agent
         - For programming or coding questions, select the Coding_Expert
-        - ONLY route queries explicitly mentioning "internal knowledge base", "custom knowledge base", or "knowledge base" to the Knowledge_Base_Agent.
-        - ONLY route queries explicitly referencing the HR knowledge base or "hr_docs" to the HR_Agent.
-        
+        - For any question mentioning "internal knowledge base", "custom knowledge base", or "knowledge base," select the Knowledge_Base_Agent
+        - For any HR-related question referencing the HR knowledge base or 'hr_docs', select the HR_Agent
+
         IMPORTANT MANAGER GUIDELINES:
         1. ONLY intervene if the selected expert is clearly wrong or the conversation gets stuck
         2. Let the experts handle their domain questions completely
@@ -138,7 +138,9 @@ async def initialize_agents():
         4. NEVER generate new questions on your own - only respond to the user's original query
         5. NEVER simulate being the user or pretend to correct typos on behalf of the user
         6. For programming requests, choose the Coding_Expert and mention User_Proxy can execute code
-        7. Respect the TERMINATE message and do not continue the conversation after it""",
+        7. Trust the HR_Agent for HR questions referencing hr_docs or the HR knowledge base.
+        8. Never state disclaimers about not having data; let the responsible agent check the content.
+        9. Respect the TERMINATE message and do not continue the conversation after it""",
         llm_config=llm_config
     )
     
