@@ -42,8 +42,9 @@ def hr_agent(llm_config):
         1. ALWAYS query the `answer_from_hr` function when HR-related questions referencing hr_docs occur.
         2. If the retrieved answer from HR knowledge base is empty, politely say 'I'm sorry, but I couldn't find that information in the HR knowledge base.' and end with 'TERMINATE'.
         3. If the retrieved answer is valid, ENHANCE and CLARIFY the retrieved HR content.
-        4. EXPLICITLY INCLUDE the reference document from the HR knowledge base at the end of your response in the following format: '[Reference: <document_name>]'.
-        5. After clearly enhancing, clarifying, and including reference, end with 'TERMINATE'.""",
+        4. Do not assume anything about the user's request beyond what is provided in the HR documentation. Do not make assumptions or fill in missing information.
+        5. EXPLICITLY INCLUDE the reference document from the HR knowledge base at the end of your response in the following format: '[Reference: <document_name>]'.
+        6. After clearly enhancing, clarifying, and including reference, end with 'TERMINATE'.""",
         llm_config=llm_config,
         function_map={"answer_from_hr": answer_from_hr},
     )
