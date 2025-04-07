@@ -75,10 +75,11 @@ def knowledge_base_agent(llm_config):
         try:
             kb_answer = kb.query(question)
             if not kb_answer.strip():
-                return "I'm sorry, but I couldn't find an answer in the knowledge base. TERMINATE"
-            return f"I am retrieving this from the internal knowledge base:\n{kb_answer}\nTERMINATE"
+                return "I'm sorry, but I couldn't find an answer in the knowledge base"
+            
+            return f"I am retrieving this from the internal knowledge base:\n{kb_answer}"
         except Exception as e:
-            return "An error occurred while accessing the knowledge base. TERMINATE"
+            return "An error occurred while accessing the knowledge base"
 
     return ConversableAgent(
         name="Knowledge_Base_Agent",

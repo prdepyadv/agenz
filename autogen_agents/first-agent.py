@@ -20,6 +20,9 @@ python autogen_agents/first-agent.py --preset coding
 
 # Default (runs interactive mode if no args provided)
 python autogen_agents/first-agent.py
+
+# To ReIndex the knowledge base, set rebuild=True in the KnowledgeBase class
+python3 autogen_agents/knowledge_base.py
 """
 
 """
