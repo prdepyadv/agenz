@@ -28,21 +28,22 @@ def hr_agent(llm_config):
         try:
             kb_answer = hr_kb.query(question)
             if not kb_answer.strip():
-                return "I'm sorry, but I couldn't find that policy in the HR knowledge base. TERMINATE"
+                return "I'm sorry, but I couldn't find that policy in the HR knowledge base."
             # Show snippet + reference
-            return f"I am retrieving this from the HR knowledge base:\n{kb_answer}\nTERMINATE"
+            return f"I am retrieving this from the HR knowledge base:\n{kb_answer}"
         except Exception:
-            return "An error occurred while accessing the HR knowledge base. TERMINATE"
+            return "An error occurred while accessing the HR knowledge base."
 
     return ConversableAgent(
         name="HR_Agent",
-        system_message="""You ONLY fetch data from the HR knowledge base when the user explicitly references the HR docs or HR questions.
-        
+        system_message="""You ONLY fetch data from the HR knowledge base when the user explicitly references HR docs or HR questions.
+
         Important Instructions:
-        1. Rely on hr_docs to answer all HR-related queries.
-        2. Clearly state your answer is from the HR knowledge base.
-        3. If the HR knowledge base has no relevant data, politely decline (e.g., say 'I couldn't find that info').
-        4. Always end your response with 'TERMINATE'.""",
+        1. ALWAYS query the `answer_from_hr` function when HR-related questions referencing hr_docs occur.
+        2. If the retrieved answer from HR knowledge base is empty, politely say 'I'm sorry, but I couldn't find that information in the HR knowledge base.' and end with 'TERMINATE'.
+        3. If the retrieved answer is valid, ENHANCE and CLARIFY the retrieved HR content.
+        4. EXPLICITLY INCLUDE the reference document from the HR knowledge base at the end of your response in the following format: '[Reference: <document_name>]'.
+        5. After clearly enhancing, clarifying, and including reference, end with 'TERMINATE'.""",
         llm_config=llm_config,
         function_map={"answer_from_hr": answer_from_hr},
     )
