@@ -22,7 +22,6 @@ def hr_agent(llm_config):
             }
         ],
     }
-    
     hr_kb = KnowledgeBase(docs_path="hr_docs")
 
     def answer_from_hr(question):
