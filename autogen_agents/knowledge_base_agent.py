@@ -3,17 +3,36 @@ from autogen import ConversableAgent
 from knowledge_base import KnowledgeBase
 
 def hr_agent(llm_config):
+    llm_config = {
+        **llm_config,
+        "functions": [
+            {
+                "name": "answer_from_hr",
+                "description": "Fetch answers explicitly from the HR knowledge base (hr_docs)",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "question": {
+                            "type": "string",
+                            "description": "The user's HR related question referencing hr_docs",
+                        }
+                    },
+                    "required": ["question"],
+                },
+            }
+        ],
+    }
+    
     hr_kb = KnowledgeBase(docs_path="hr_docs")
 
     def answer_from_hr(question):
         try:
             kb_answer = hr_kb.query(question)
-            if not kb_answer:
-                # No matching HR document text found
+            if not kb_answer.strip():
                 return "I'm sorry, but I couldn't find that policy in the HR knowledge base. TERMINATE"
+            # Show snippet + reference
             return f"I am retrieving this from the HR knowledge base:\n{kb_answer}\nTERMINATE"
         except Exception:
-            # If something goes wrong with the knowledge base call
             return "An error occurred while accessing the HR knowledge base. TERMINATE"
 
     return ConversableAgent(
@@ -54,11 +73,11 @@ def knowledge_base_agent(llm_config):
     def answer_from_kb(question):
         try:
             kb_answer = kb.query(question)
-            if not kb_answer:
-                return "I'm sorry, but I couldn't find an answer in the knowledge base."
-            return kb_answer
+            if not kb_answer.strip():
+                return "I'm sorry, but I couldn't find an answer in the knowledge base. TERMINATE"
+            return f"I am retrieving this from the internal knowledge base:\n{kb_answer}\nTERMINATE"
         except Exception as e:
-            return "An error occurred while accessing the knowledge base."
+            return "An error occurred while accessing the knowledge base. TERMINATE"
 
     return ConversableAgent(
         name="Knowledge_Base_Agent",

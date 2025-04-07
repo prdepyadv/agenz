@@ -50,7 +50,14 @@ class KnowledgeBase:
 
     def query(self, question, k=3):
         docs = self.db.similarity_search(question, k=k)
-        return "\n\n".join(doc.page_content for doc in docs)
+        results = []
+        for doc in docs:
+            snippet = doc.page_content.strip()
+            reference = doc.metadata.get("source", "No reference")
+            # Combine both snippet and reference
+            results.append(f"{snippet}\n[Reference: {reference}]")
+        
+        return "\n\n".join(results)
 
 if __name__ == "__main__":
     kb = KnowledgeBase(docs_path="hr_docs", rebuild=True)
