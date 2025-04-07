@@ -34,7 +34,10 @@ class KnowledgeBase:
         for doc in documents:
             print(f"- {doc.metadata.get('source')}")
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=100
+        )
         texts = text_splitter.split_documents(documents)
 
         self.db = Chroma.from_documents(
@@ -50,14 +53,27 @@ class KnowledgeBase:
 
     def query(self, question, k=3):
         docs = self.db.similarity_search(question, k=k)
-        results = []
+        if not docs:
+            return ""
+
+        # Group chunks by reference (filename)
+        results_by_ref = {}
         for doc in docs:
             snippet = doc.page_content.strip()
             reference = doc.metadata.get("source", "No reference")
-            # Combine both snippet and reference
-            results.append(f"{snippet}\n[Reference: {reference}]")
-        
-        return "\n\n".join(results)
+            if reference not in results_by_ref:
+                results_by_ref[reference] = set()
+            results_by_ref[reference].add(snippet)
+
+        # Build final answer with snippets from each reference
+        final_answers = []
+        for ref, snippet_set in results_by_ref.items():
+            # Combine them into a single text block, removing duplicates
+            combined_text = " ".join(snippet_set)
+            final_answers.append(f"{combined_text}\n[Reference: {ref}]")
+
+        # Return neatly separated references
+        return "\n\n".join(final_answers)
 
 if __name__ == "__main__":
     kb = KnowledgeBase(docs_path="hr_docs", rebuild=True)
