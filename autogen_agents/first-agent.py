@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import asyncio
 from autogen import AssistantAgent, UserProxyAgent, GroupChat, GroupChatManager
 
-from knowledge_base_agent import knowledge_base_agent
+from knowledge_base_agent import hr_agent, knowledge_base_agent
 
 """
 Example Usage:
@@ -103,7 +103,8 @@ async def initialize_agents():
         llm_config=llm_config,
     )
     
-    kb_agent = knowledge_base_agent(llm_config)
+    kb_agent_instance = knowledge_base_agent(llm_config)
+    hr_agent_instance = hr_agent(llm_config)
 
     # Create user proxy agent that will provide input and can execute code
     user_proxy = UserProxyAgent(
@@ -128,6 +129,7 @@ async def initialize_agents():
         - For general knowledge questions, select the General_Knowledge agent
         - For programming or coding questions, select the Coding_Expert
         - ONLY route queries explicitly mentioning "internal knowledge base", "custom knowledge base", or "knowledge base" to the Knowledge_Base_Agent.
+        - ONLY route queries explicitly referencing the HR knowledge base or "hr_docs" to the HR_Agent.
         
         IMPORTANT MANAGER GUIDELINES:
         1. ONLY intervene if the selected expert is clearly wrong or the conversation gets stuck
@@ -142,7 +144,7 @@ async def initialize_agents():
     
     # Create the group chat with appropriate configuration
     group_chat = GroupChat(
-        agents=[user_proxy, manager, math_tutor, history_tutor, general_knowledge, coding_expert, kb_agent],
+        agents=[user_proxy, manager, math_tutor, history_tutor, general_knowledge, coding_expert, kb_agent_instance, hr_agent_instance],
         messages=[],
         max_round=12,
         speaker_selection_method="auto",

@@ -176,3 +176,5 @@ cython_debug/
 coding_workspace
 
 kb_chroma_db
+
+hr_docs/

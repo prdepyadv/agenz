@@ -2,6 +2,33 @@ import os
 from autogen import ConversableAgent
 from knowledge_base import KnowledgeBase
 
+def hr_agent(llm_config):
+    hr_kb = KnowledgeBase(docs_path="hr_docs")
+
+    def answer_from_hr(question):
+        try:
+            kb_answer = hr_kb.query(question)
+            if not kb_answer:
+                # No matching HR document text found
+                return "I'm sorry, but I couldn't find that policy in the HR knowledge base. TERMINATE"
+            return f"I am retrieving this from the HR knowledge base:\n{kb_answer}\nTERMINATE"
+        except Exception:
+            # If something goes wrong with the knowledge base call
+            return "An error occurred while accessing the HR knowledge base. TERMINATE"
+
+    return ConversableAgent(
+        name="HR_Agent",
+        system_message="""You ONLY fetch data from the HR knowledge base when the user explicitly references the HR docs or HR questions.
+        
+        Important Instructions:
+        1. Rely on hr_docs to answer all HR-related queries.
+        2. Clearly state your answer is from the HR knowledge base.
+        3. If the HR knowledge base has no relevant data, politely decline (e.g., say 'I couldn't find that info').
+        4. Always end your response with 'TERMINATE'.""",
+        llm_config=llm_config,
+        function_map={"answer_from_hr": answer_from_hr},
+    )
+
 def knowledge_base_agent(llm_config):
     llm_config = {
         **llm_config,

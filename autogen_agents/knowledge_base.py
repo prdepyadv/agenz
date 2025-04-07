@@ -53,4 +53,4 @@ class KnowledgeBase:
         return "\n\n".join(doc.page_content for doc in docs)
 
 if __name__ == "__main__":
-    kb = KnowledgeBase(rebuild=True)
+    kb = KnowledgeBase(docs_path="hr_docs", rebuild=True)
